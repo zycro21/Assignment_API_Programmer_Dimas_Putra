@@ -1,12 +1,35 @@
 const { Pool } = require("pg");
 require("dotenv").config();
 
+const isProduction = process.env.NODE_ENV === "production";
+
 const pool = new Pool({
-  user: process.env.DB_USER,
-  host: process.env.DB_HOST,
-  database: process.env.DB_NAME,
-  password: process.env.DB_PASS,
-  port: process.env.DB_PORT,
+  user: isProduction
+    ? process.env.PGUSER
+    : process.env.DB_USER,
+
+  host: isProduction
+    ? process.env.PGHOST
+    : process.env.DB_HOST,
+
+  database: isProduction
+    ? process.env.PGDATABASE
+    : process.env.DB_NAME,
+
+  password: isProduction
+    ? process.env.PGPASSWORD
+    : process.env.DB_PASS,
+
+  port: isProduction
+    ? process.env.PGPORT
+    : process.env.DB_PORT,
+
+  // railway postgres biasanya butuh ssl
+  ssl: isProduction
+    ? {
+        rejectUnauthorized: false,
+      }
+    : false,
 });
 
 pool.connect()
@@ -14,7 +37,10 @@ pool.connect()
     console.log("Database connected");
   })
   .catch((err) => {
-    console.error("Database connection error:", err.message);
+    console.error(
+      "Database connection error:",
+      err.message,
+    );
   });
 
 module.exports = pool;
